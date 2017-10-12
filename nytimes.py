@@ -29,7 +29,7 @@ except:
 # -----------------------------------------------------------------------------
 # Cache functions
 # -----------------------------------------------------------------------------
-def has_cache_expired(timestamp_str):
+def has_cache_expired(timestamp_str, expire_in_days):
     """Check if cache timestamp is over expire_in_days old"""
     # gives current datetime
     now = datetime.now()
@@ -43,7 +43,7 @@ def has_cache_expired(timestamp_str):
 
     # now that we have days as integers, we can just use comparison
     # and decide if cache has expired or not
-    if delta_in_days > expire_in_days:
+    if delta_in_days <= expire_in_days:
         return False
     else:
         return True
@@ -75,7 +75,7 @@ def set_in_cache(url, html, expire_in_days):
     }
 
     with open(CACHE_FNAME, 'w') as cache_file:
-        cache_json = json.dumps(CACHE_DICTION)
+        cache_json = json.dumps(CACHE_DICTION, indent = 2)
         cache_file.write(cache_json)
 
 
@@ -179,11 +179,12 @@ def load_articles_from_headlines_only(section_soup):
     stories = section_soup.find_all('li')
     for story_soup in stories:
         story_dict = {
-            'title': story_soup.find('h6').text.strip(),
+            'title': story_soup.find('a').text.strip(),
             'url': story_soup.find('a').get('href')
         }
 
         byline_tag = story_soup.find('div', {'class': 'byline'})
+
         story_dict['byline'] = byline_tag.text.strip() if byline_tag else None
 
         story_dict['related_articles'] = extract_related_articles(story_dict['url'])
